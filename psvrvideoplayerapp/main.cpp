@@ -6,6 +6,8 @@
 #include <QString>
 #include <QStringList>
 #include <QFileInfo>
+#include <QPixmap>>
+#include <QCursor>
 
 #include <QtQml>
 #include <QWindow>
@@ -19,6 +21,12 @@
 void forceFullScreen(const QGuiApplication &app) {
     QWindow* window = app.allWindows().at(0);
     window->setVisibility(QWindow::Visibility::FullScreen);
+}
+
+void hideCursor(const QGuiApplication &app) {
+    QPixmap nullCursor(16, 16);
+    nullCursor.fill(Qt::transparent);
+    app.setOverrideCursor(QCursor(nullCursor));
 }
 
 int main(int argc, char *argv[]) {
@@ -73,6 +81,7 @@ int main(int argc, char *argv[]) {
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     forceFullScreen(app);
+    hideCursor(app);
 
     return app.exec();
 }
