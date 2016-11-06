@@ -1,6 +1,11 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QString>
+#include <QStringList>
+
 #include <QtQml>
 #include <QWindow>
 #include <QScreen>
@@ -17,10 +22,46 @@ void forceFullScreen(const QGuiApplication &app) {
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
+    QGuiApplication::setApplicationName(("PSVR Video Player"));
+    QGuiApplication::setApplicationVersion("0.1");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Simple CLI PSVR Video Player");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    parser.addPositionalArgument("filename", "Path to the video file");
+    QCommandLineOption ipdOption(QStringList() << "i" << "ipd", "IPD in mm, 40 to 80 (default to 64mm)", "ipd", "64");
+    parser.addOption(ipdOption);
+    QCommandLineOption formatOption(QStringList() << "f" << "format", "Video format: 180sbs, 360sbs (default to 360 sbs)", "format", "360sbs");
+    parser.addOption(formatOption);
+
+    parser.process(app);
+
+    const QStringList args = parser.positionalArguments();
+    if (args.size() != 1) {
+        fprintf(stderr, "%s\n", qPrintable("Error: must specify only one file argument."));
+        parser.showHelp(1);
+    }
+
+    int ipd = parser.value(ipdOption).toInt();
+    if (ipd < 40 || ipd > 80) {
+       fprintf(stderr, "%s\n", qPrintable("Error: specified IPD is invalid."));
+       parser.showHelp(1);
+    }
+
+    QString format = parser.value(formatOption);
+    if (!(QStringList() << "180sbs" << "360sbs").contains(format)){
+        fprintf(stderr, "%s\n", qPrintable("Error: unknown specified format."));
+        parser.showHelp(1);
+    }
 
     qmlRegisterType<QMLPSVR>("QMLPSVR", 0, 1, "QMLPSVR");
 
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("filename", args.at(0));
+    engine.rootContext()->setContextProperty("videoType", format);
+    engine.rootContext()->setContextProperty("eyeSeparation", (float) ipd / 1000.0f);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     forceFullScreen(app);

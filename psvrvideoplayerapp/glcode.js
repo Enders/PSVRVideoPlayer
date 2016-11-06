@@ -9,34 +9,60 @@ var geoL, geoR;
 
 var quaternion;
 
-function initializeGL(canvas, inputSource, qmlpsvr) {
+function initializeGL(canvas, inputSource, qmlpsvr, options) {
     camera = new THREE.PerspectiveCamera(100, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
 
+    // Projection surfaces (Left/Right)
+    switch(options.videoType) {
+        case "180sbs":
+            geoL = new THREE.SphereGeometry(500, 128, 128, Math.PI, Math.PI, 0, Math.PI);
+            geoR = new THREE.SphereGeometry(500, 128, 128, Math.PI, Math.PI, 0, Math.PI);
+            break;
+        case "360sbs":
+            geoL = new THREE.SphereGeometry(500, 128, 128);
+            geoR = new THREE.SphereGeometry(500, 128, 128);
+            break;
+    }
+
     // Left image
-    geoL = new THREE.SphereGeometry(500, 128, 128);
     geoL.name = "geoL";
     geoL.applyMatrix(new THREE.Matrix4().makeScale(-1, 1, 1));
 
     var uvs = geoL.faceVertexUvs[0];
+
     for (i = 0; i < uvs.length; i ++) {
         for (j = 0; j < 3; j++) {
-            uvs[i][j].x -= 0.25;
-            uvs[i][j].y *= 0.5;
-            uvs[i][j].y += 0.5;
+            switch(options.videoType) {
+                case "180sbs":
+                    uvs[i][j].x *= 0.5;
+                    break;
+                case "360sbs":
+                    uvs[i][j].x -= 0.25;
+                    uvs[i][j].y *= 0.5;
+                    uvs[i][j].y += 0.5;
+                    break;
+            }
         }
     }
 
     // Right image
-    geoR = new THREE.SphereGeometry(500, 128, 128);
     geoR.name = "geoR";
     geoR.applyMatrix(new THREE.Matrix4().makeScale(-1, 1, 1));
 
     var uvs = geoR.faceVertexUvs[0];
     for (var i = 0; i < uvs.length; i++) {
         for (var j = 0; j < 3; j ++) {
-            uvs[i][j].x -= 0.25;
-            uvs[i][j].y *= 0.5;
+            switch(options.videoType) {
+                case "180sbs":
+                    uvs[i][j].x *= 0.5;
+                    uvs[i][j].x += 0.5;
+                    break;
+                case "360sbs":
+                    uvs[i][j].x -= 0.25;
+                    uvs[i][j].y *= 0.5;
+                    break;
+            }
         }
     }
 
@@ -67,12 +93,12 @@ function initializeGL(canvas, inputSource, qmlpsvr) {
 
     stereoEffect = new THREE.StereoEffect(renderer);
     stereoEffect.setSize(canvas.width, canvas.height);
+    stereoEffect.setEyeSeparation(options.eyeSeparation)
 }
 
 function resizeGL(canvas) {
     camera.aspect = canvas.width / canvas.height;
     camera.updateProjectionMatrix();
-
     stereoEffect.setSize(canvas.width, canvas.height);
 }
 

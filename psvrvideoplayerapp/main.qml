@@ -61,6 +61,7 @@ Window {
     }
 
     Loader {
+        id: pano3dViewLoader
         anchors.fill: parent
         sourceComponent: Component {
             Pano3DView {
@@ -97,13 +98,7 @@ Window {
     }
 
     function init() {
-        var filePath = Qt.application.arguments[1];
-        if (!filePath) {
-            quitWithError("Video file path is not valid.");
-            return;
-        }
-
-        videoSource.source = "file://" + filePath;
+        videoSource.source = "file://" + filename;
         qmlpsvr.initialize();
     }
 

@@ -14,13 +14,11 @@ THREE.StereoEffect = function ( renderer ) {
 
     this.setEyeSeparation = function ( eyeSep ) {
         _stereo.eyeSep = eyeSep;
-
+        _stereo.forcedUpdate = true;
     };
 
     this.setSize = function ( width, height ) {
-
         renderer.setSize( width, height );
-
     };
 
     this.render = function ( scene, camera ) {

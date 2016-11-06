@@ -12,7 +12,7 @@ Item {
         anchors.fill: parent
 
         onInitializeGL: {
-            GLCode.initializeGL(canvas3d, textureSource, qmlpsvr);
+            GLCode.initializeGL(canvas3d, textureSource, qmlpsvr, { videoType: videoType, eyeSeparation: eyeSeparation });
         }
 
         onPaintGL: {
