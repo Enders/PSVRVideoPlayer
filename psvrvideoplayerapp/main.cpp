@@ -5,6 +5,7 @@
 #include <QCommandLineParser>
 #include <QString>
 #include <QStringList>
+#include <QFileInfo>
 
 #include <QtQml>
 #include <QWindow>
@@ -22,7 +23,7 @@ void forceFullScreen(const QGuiApplication &app) {
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName(("PSVR Video Player"));
+    QGuiApplication::setApplicationName(("PSVRVideoPlayer"));
     QGuiApplication::setApplicationVersion("0.1");
 
     QCommandLineParser parser;
@@ -43,6 +44,13 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "%s\n", qPrintable("Error: must specify only one file argument."));
         parser.showHelp(1);
     }
+    QString filename = args.at(0);
+
+    // Convert to absolute path for QML Video player
+    QFileInfo info(filename);
+    if (info.isRelative()) {
+        filename = info.absoluteFilePath();
+    }
 
     int ipd = parser.value(ipdOption).toInt();
     if (ipd < 40 || ipd > 80) {
@@ -59,7 +67,7 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<QMLPSVR>("QMLPSVR", 0, 1, "QMLPSVR");
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("filename", args.at(0));
+    engine.rootContext()->setContextProperty("filename", filename);
     engine.rootContext()->setContextProperty("videoType", format);
     engine.rootContext()->setContextProperty("eyeSeparation", (float) ipd / 1000.0f);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
